@@ -16,5 +16,9 @@ backend/samples/
 frontend/node_modules/
 frontend/.env.local
 
+# Vercel
+.vercel/
+frontend/.vercel/
+
 # OS
 .DS_Store
