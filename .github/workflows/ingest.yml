@@ -2,9 +2,11 @@ name: Ingest road incidents
 
 on:
   schedule:
-    # Every 5 minutes (GitHub's minimum). Note: scheduled runs may be delayed
-    # by a few minutes under platform load.
-    - cron: "*/5 * * * *"
+    # Every 15 minutes, offset off the top of the hour (:07/:22/:37/:52).
+    # GitHub's scheduler is best-effort and throttles high-frequency crons and
+    # the :00 slot hardest; this cadence is honored far more reliably and is
+    # ample for Middle Mile planning.
+    - cron: "7,22,37,52 * * * *"
   workflow_dispatch:
     inputs:
       facilities:

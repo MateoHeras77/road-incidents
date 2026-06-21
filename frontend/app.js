@@ -388,8 +388,8 @@ function wireUI() {
 function setAutoRefresh(on) {
   if (autoRefreshTimer) { clearInterval(autoRefreshTimer); autoRefreshTimer = null; }
   if (on) {
-    autoRefreshTimer = setInterval(() => init(true), 5 * 60 * 1000);
-    flash("Auto-refresh on (every 5 min)");
+    autoRefreshTimer = setInterval(() => init(true), 15 * 60 * 1000);
+    flash("Auto-refresh on (every 15 min)");
   } else {
     flash("Auto-refresh off");
   }

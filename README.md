@@ -127,11 +127,13 @@ Live, all on free tiers:
 |-----------|-------|-------------|
 | Database | Supabase | project `road-incidents` (`jwcfsknwwbnxoiaphtkw`, ca-central-1) |
 | Dashboard | Vercel | https://frontend-mateoheras77s-projects.vercel.app |
-| Ingester | GitHub Actions | `.github/workflows/ingest.yml`, cron `*/5 * * * *` |
+| Ingester | GitHub Actions | `.github/workflows/ingest.yml`, cron `7,22,37,52 * * * *` (every 15 min) |
 | Repo | GitHub (public) | https://github.com/MateoHeras77/road-incidents |
 
-- **Ingester** runs every 5 minutes via GitHub Actions (free, unlimited on public
-  repos). Secrets live in **GitHub Actions Secrets** (`SUPABASE_URL`,
+- **Ingester** runs every 15 minutes via GitHub Actions (free, unlimited on public
+  repos). GitHub's scheduler is best-effort; the offset 15-min cadence is honored more
+  reliably than `*/5`, and a new repo's first scheduled run can lag 1–2h before it
+  begins firing. Secrets live in **GitHub Actions Secrets** (`SUPABASE_URL`,
   `SUPABASE_SERVICE_KEY`, `MANITOBA_511_KEY`, + pending provinces). Manual run:
   Actions tab → "Ingest road incidents" → Run workflow (toggle `facilities` to also
   reload the POI CSV).
