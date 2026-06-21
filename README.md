@@ -127,13 +127,16 @@ Live, all on free tiers:
 |-----------|-------|-------------|
 | Database | Supabase | project `road-incidents` (`jwcfsknwwbnxoiaphtkw`, ca-central-1) |
 | Dashboard | Vercel | https://frontend-mateoheras77s-projects.vercel.app |
-| Ingester | GitHub Actions | `.github/workflows/ingest.yml`, cron `7,22,37,52 * * * *` (every 15 min) |
+| Ingester | GitHub Actions | `.github/workflows/ingest.yml` (`workflow_dispatch`) |
+| Scheduler | Supabase Cron | `trigger-ingest` job, `*/15 * * * *`, pg_cron + pg_net |
 | Repo | GitHub (public) | https://github.com/MateoHeras77/road-incidents |
 
-- **Ingester** runs every 15 minutes via GitHub Actions (free, unlimited on public
-  repos). GitHub's scheduler is best-effort; the offset 15-min cadence is honored more
-  reliably than `*/5`, and a new repo's first scheduled run can lag 1–2h before it
-  begins firing. Secrets live in **GitHub Actions Secrets** (`SUPABASE_URL`,
+- **Scheduling** is driven by **Supabase Cron** (`pg_cron` + `pg_net`), not GitHub's
+  native `schedule:` — the latter is best-effort and was throttled to ~every 1.5-3.5h.
+  A pg_cron job (`trigger-ingest`, `*/15 * * * *`) makes an HTTP POST to GitHub's
+  `workflow_dispatch` API every 15 minutes, which fires reliably. The GitHub PAT is
+  stored in Supabase Vault (`gh_pat_ingest`); it needs repo **Actions: Read and write**.
+  The ingester itself still runs on GitHub Actions (free). Secrets live in **GitHub Actions Secrets** (`SUPABASE_URL`,
   `SUPABASE_SERVICE_KEY`, `MANITOBA_511_KEY`, + pending provinces). Manual run:
   Actions tab → "Ingest road incidents" → Run workflow (toggle `facilities` to also
   reload the POI CSV).

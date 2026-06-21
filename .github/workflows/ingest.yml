@@ -1,12 +1,10 @@
 name: Ingest road incidents
 
 on:
-  schedule:
-    # Every 15 minutes, offset off the top of the hour (:07/:22/:37/:52).
-    # GitHub's scheduler is best-effort and throttles high-frequency crons and
-    # the :00 slot hardest; this cadence is honored far more reliably and is
-    # ample for Middle Mile planning.
-    - cron: "7,22,37,52 * * * *"
+  # Triggered every 15 min by Supabase Cron (pg_cron + pg_net) via
+  # workflow_dispatch. GitHub's native `schedule:` is best-effort and was
+  # throttled to ~every 1.5-3.5h, so it was removed in favour of the reliable
+  # pg_cron trigger. See README "Deployment".
   workflow_dispatch:
     inputs:
       facilities:
