@@ -1,6 +1,7 @@
 """Shared helpers for source adapters: HTTP fetching and time parsing."""
 from __future__ import annotations
 
+import time
 from datetime import datetime, timezone
 from typing import Any, Optional
 
@@ -12,13 +13,26 @@ USER_AGENT = (
 )
 
 DEFAULT_TIMEOUT = 30
+MAX_ATTEMPTS = 3
 
 
 def http_get_json(url: str, *, timeout: int = DEFAULT_TIMEOUT) -> Any:
-    """GET a URL with a browser User-Agent (some 511 WAFs block default UAs)."""
-    resp = requests.get(url, headers={"User-Agent": USER_AGENT}, timeout=timeout)
-    resp.raise_for_status()
-    return resp.json()
+    """GET a URL with a browser User-Agent, retrying transient network errors.
+
+    Some 511 WAFs block default UAs; some hosts are slow/flaky from cloud
+    runners, so connection/read timeouts are retried with a short backoff.
+    """
+    last_exc: Optional[Exception] = None
+    for attempt in range(1, MAX_ATTEMPTS + 1):
+        try:
+            resp = requests.get(url, headers={"User-Agent": USER_AGENT}, timeout=timeout)
+            resp.raise_for_status()
+            return resp.json()
+        except (requests.Timeout, requests.ConnectionError) as exc:
+            last_exc = exc
+            if attempt < MAX_ATTEMPTS:
+                time.sleep(2 * attempt)
+    raise last_exc
 
 
 def ts_from_epoch(value: Any) -> Optional[datetime]:

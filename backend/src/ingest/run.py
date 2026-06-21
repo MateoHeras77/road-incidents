@@ -126,11 +126,19 @@ def main() -> None:
         out_dir.mkdir(parents=True, exist_ok=True)
 
     totals = {"events": 0, "cameras": 0, "conditions": 0}
+    failures = []
     for source in sources:
-        if args.from_samples:
-            collected = collect_from_samples(source, Path(args.from_samples))
-        else:
-            collected = collect_live(source, limiter)
+        try:
+            if args.from_samples:
+                collected = collect_from_samples(source, Path(args.from_samples))
+            else:
+                collected = collect_live(source, limiter)
+        except Exception as exc:
+            # One source failing must not abort the rest, and must not clear its
+            # existing rows in the DB — skip it entirely this run.
+            print(f"{source}: FETCH FAILED, skipping (DB left unchanged): {exc}")
+            failures.append(source)
+            continue
         collected = filter_highways(collected, highways_only)
         n_e, n_cam, n_c = len(collected["events"]), len(collected["cameras"]), len(collected["conditions"])
         totals["events"] += n_e
@@ -156,6 +164,12 @@ def main() -> None:
                 sink.replace_conditions(source, collected["conditions"])
 
     print(f"TOTAL events={totals['events']} cameras={totals['cameras']} conditions={totals['conditions']}")
+    if failures:
+        print(f"FAILED sources: {', '.join(failures)}")
+    # Only treat a run as failed if every requested source failed (a real outage),
+    # not for an isolated transient timeout.
+    if failures and len(failures) == len(sources):
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":
