@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Road Incidents — Middle Mile</title>
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.5.0/dist/maplibre-gl.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header id="topbar">
+    <div class="brand">
+      <strong>Road Incidents</strong>
+      <span class="sub">Middle Mile — Canadian highway network</span>
+    </div>
+    <div id="counters" class="counters"></div>
+    <button id="refresh" title="Reload data">↻ Refresh</button>
+  </header>
+
+  <div id="app">
+    <aside id="sidebar">
+      <div class="filter-block">
+        <input type="search" id="search" placeholder="Search road, place, description…" />
+      </div>
+
+      <div class="filter-block fields">
+        <label class="field"><span>Recency</span>
+          <select id="age">
+            <option value="6">Last 6 hours</option>
+            <option value="24" selected>Last 24 hours</option>
+            <option value="72">Last 3 days</option>
+            <option value="168">Last 7 days</option>
+            <option value="720">Last 30 days</option>
+            <option value="0">All time</option>
+          </select>
+        </label>
+        <label class="field"><span>Importance</span>
+          <select id="importance">
+            <option value="critical">Critical only</option>
+            <option value="high" selected>High priority &amp; up</option>
+            <option value="all">Show everything</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="filter-block">
+        <label class="toggle">
+          <input type="checkbox" id="near-only" />
+          Near facilities only
+        </label>
+        <label class="toggle">
+          <input type="checkbox" id="full-only" />
+          Full closures only
+        </label>
+        <label class="toggle">
+          <input type="checkbox" id="scheduled-only" />
+          Scheduled (future) only
+        </label>
+      </div>
+
+      <div class="filter-block">
+        <div class="filter-title">Event type</div>
+        <div id="class-filters" class="chips"></div>
+      </div>
+
+      <div class="filter-block">
+        <div class="filter-title">Province</div>
+        <div id="province-filters" class="chips"></div>
+      </div>
+
+      <div class="filter-block">
+        <div class="filter-title">Layers</div>
+        <label class="toggle"><input type="checkbox" id="layer-events" checked /> Events</label>
+        <label class="toggle"><input type="checkbox" id="layer-facilities" checked /> Facilities</label>
+        <label class="toggle"><input type="checkbox" id="layer-cameras" /> Cameras</label>
+        <label class="toggle"><input type="checkbox" id="layer-conditions" /> Road conditions</label>
+      </div>
+
+      <div class="filter-block">
+        <label class="toggle"><input type="checkbox" id="autorefresh" /> Auto-refresh every 5 min</label>
+      </div>
+
+      <div class="filter-block list-header">
+        <span id="list-count">0 events</span>
+        <select id="sort">
+          <option value="priority">Sort: severity</option>
+          <option value="distance">Sort: nearest facility</option>
+          <option value="updated">Sort: last updated</option>
+        </select>
+      </div>
+      <ul id="event-list"></ul>
+    </aside>
+
+    <main id="map"></main>
+  </div>
+
+  <div id="status">Loading…</div>
+
+  <script src="https://unpkg.com/maplibre-gl@4.5.0/dist/maplibre-gl.js"></script>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

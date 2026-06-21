@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+backend/.venv/
+
+# Secrets
+.env
+backend/.env
+
+# Captured / generated data (large; reproducible)
+backend/samples/
+!backend/samples/.gitkeep
+
+# Frontend
+frontend/node_modules/
+frontend/.env.local
+
+# OS
+.DS_Store
