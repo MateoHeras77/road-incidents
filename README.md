@@ -119,10 +119,26 @@ restrictions, truck-restricted, or near-facility events; *Low* = everything else
 - Remaining Supabase linter notices (`spatial_ref_sys` RLS, `postgis` in `public`,
   `st_estimatedextent`) are PostGIS extension defaults and are accepted.
 
-## Scheduling (next step)
+## Deployment
 
-Run the ingester on a schedule (cron / launchd) every 2–5 minutes, e.g.
-`*/3 * * * * cd .../backend && .venv/bin/python -m src.ingest.run --push`.
+Live, all on free tiers:
+
+| Component | Where | URL / notes |
+|-----------|-------|-------------|
+| Database | Supabase | project `road-incidents` (`jwcfsknwwbnxoiaphtkw`, ca-central-1) |
+| Dashboard | Vercel | https://frontend-mateoheras77s-projects.vercel.app |
+| Ingester | GitHub Actions | `.github/workflows/ingest.yml`, cron `*/5 * * * *` |
+| Repo | GitHub (public) | https://github.com/MateoHeras77/road-incidents |
+
+- **Ingester** runs every 5 minutes via GitHub Actions (free, unlimited on public
+  repos). Secrets live in **GitHub Actions Secrets** (`SUPABASE_URL`,
+  `SUPABASE_SERVICE_KEY`, `MANITOBA_511_KEY`, + pending provinces). Manual run:
+  Actions tab → "Ingest road incidents" → Run workflow (toggle `facilities` to also
+  reload the POI CSV).
+- **Frontend** redeploy: `vercel deploy --prod --yes --cwd frontend` (Vercel
+  deployment protection is disabled so planners can open it without a login).
+- One source timing out skips only that source for that run (its rows are left
+  untouched); the job fails only on a total outage.
 
 ## Licensing caveat
 
