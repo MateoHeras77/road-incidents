@@ -18,6 +18,8 @@ const CLASS_LABELS = {
   info: "Info", other: "Other",
 };
 const CLASS_RANK = { closure: 0, accident: 1, construction: 2, restriction: 3, special: 4, condition: 5, info: 6, other: 7 };
+// These event classes render as small icons; the rest stay as plain dots.
+const ICON_CLASSES = ["closure", "accident", "construction"];
 const PROVINCE_ABBR = {
   "British Columbia": "BC", "Alberta": "AB", "Saskatchewan": "SK", "Manitoba": "MB",
   "Ontario": "ON", "Quebec": "QC", "New Brunswick": "NB", "Nova Scotia": "NS",
@@ -128,7 +130,7 @@ function eventFeatures() {
       type: "Feature",
       geometry: { type: "Point", coordinates: [e.lon, e.lat] },
       properties: {
-        id: e.id, cls: e.event_class, full: e.is_full_closure,
+        id: e.id, cls: e.event_class, full: e.is_full_closure, icon: e.event_class,
         label: e.road_number || e.roadway_name || "",
       },
     })),
@@ -263,11 +265,43 @@ const BASE_STYLE = {
   layers: [{ id: "carto", type: "raster", source: "carto" }],
 };
 
-function addLayers() {
+// --- Category icons -------------------------------------------------------
+// Small colored badges generated inline as SVG (no external assets). Rendered
+// at 44px with pixelRatio 2 → ~22px base, then scaled down via icon-size.
+function badgeSvg(color, glyph) {
+  return (
+    `<svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 44 44">` +
+    `<circle cx="22" cy="22" r="16.5" fill="${color}" stroke="#fff" stroke-width="3"/>${glyph}</svg>`
+  );
+}
+const ICON_SVGS = {
+  closure: badgeSvg("#e03131", '<rect x="13" y="19.5" width="18" height="5" rx="2.5" fill="#fff"/>'),
+  accident: badgeSvg("#f08c00", '<rect x="20" y="12.5" width="4" height="12.5" rx="2" fill="#fff"/><circle cx="22" cy="30.5" r="2.6" fill="#fff"/>'),
+  construction: badgeSvg("#e8a90c", '<path d="M22 12 L30.5 30 H13.5 Z" fill="#fff"/><rect x="12.5" y="28.8" width="19" height="3.6" rx="1.6" fill="#fff"/>'),
+  camera: badgeSvg("#3b5bdb", '<rect x="12" y="17.5" width="14.5" height="11" rx="2" fill="#fff"/><circle cx="19.2" cy="23" r="3" fill="#3b5bdb"/><path d="M27 20 l5.5 -3 v12 l-5.5 -3 z" fill="#fff"/>'),
+  facility: badgeSvg("#a98467", '<path d="M22 13 L32 20.5 V31.5 H12 V20.5 Z" fill="#fff"/><rect x="19" y="24.5" width="6" height="7" fill="#a98467"/>'),
+};
+function svgToImage(svg) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = "data:image/svg+xml;base64," + btoa(svg);
+  });
+}
+async function loadIcons() {
+  for (const [name, svg] of Object.entries(ICON_SVGS)) {
+    if (!map.hasImage(name)) map.addImage(name, await svgToImage(svg), { pixelRatio: 2 });
+  }
+}
+
+async function addLayers() {
   map.addSource("events", { type: "geojson", data: eventFeatures() });
   map.addSource("facilities", { type: "geojson", data: toFC(state.facilities, "facility") });
   map.addSource("cameras", { type: "geojson", data: toFC(state.cameras, "camera") });
   map.addSource("conditions", { type: "geojson", data: toFC(state.conditions, "condition") });
+
+  await loadIcons();
 
   map.addLayer({
     id: "conditions-layer", type: "circle", source: "conditions",
@@ -275,37 +309,48 @@ function addLayers() {
     paint: { "circle-radius": 3, "circle-color": "#0ca678", "circle-opacity": 0.5 },
   });
   map.addLayer({
-    id: "cameras-layer", type: "circle", source: "cameras",
-    layout: { visibility: "none" },
-    paint: { "circle-radius": 3.5, "circle-color": "#3b5bdb", "circle-opacity": 0.7,
-      "circle-stroke-width": 1, "circle-stroke-color": "#fff" },
+    id: "cameras-layer", type: "symbol", source: "cameras",
+    layout: { visibility: "none", "icon-image": "camera", "icon-size": 0.58, "icon-allow-overlap": true },
   });
   map.addLayer({
-    id: "facilities-layer", type: "circle", source: "facilities",
-    paint: {
-      "circle-radius": ["interpolate", ["linear"], ["get", "priority"], 1, 4, 5, 8],
-      "circle-color": "#a98467", "circle-opacity": 0.85,
-      "circle-stroke-width": 1, "circle-stroke-color": "#ffffff",
+    id: "facilities-layer", type: "symbol", source: "facilities",
+    layout: {
+      "icon-image": "facility",
+      "icon-size": ["interpolate", ["linear"], ["get", "priority"], 1, 0.5, 5, 0.72],
+      "icon-allow-overlap": true,
     },
   });
+  // Dot classes (restriction/special/condition/info/other) stay as circles.
   const colorMatch = ["match", ["get", "cls"]];
   for (const [k, v] of Object.entries(CLASS_COLORS)) colorMatch.push(k, v);
   colorMatch.push("#868e96");
   map.addLayer({
     id: "events-layer", type: "circle", source: "events",
+    filter: ["!", ["in", ["get", "cls"], ["literal", ICON_CLASSES]]],
     paint: {
-      "circle-radius": ["case", ["get", "full"], 8, 5.5],
+      "circle-radius": 5.5,
       "circle-color": colorMatch,
-      "circle-stroke-width": ["case", ["get", "full"], 2, 1],
-      "circle-stroke-color": "#fff", "circle-opacity": 0.9,
+      "circle-stroke-width": 1, "circle-stroke-color": "#fff", "circle-opacity": 0.9,
+    },
+  });
+  // Closure / accident / construction render as small colored icons.
+  map.addLayer({
+    id: "events-icons", type: "symbol", source: "events",
+    filter: ["in", ["get", "cls"], ["literal", ICON_CLASSES]],
+    layout: {
+      "icon-image": ["get", "icon"],
+      "icon-size": ["case", ["get", "full"], 0.82, 0.66],
+      "icon-allow-overlap": true,
     },
   });
 
-  map.on("click", "events-layer", (ev) => {
+  const onEventClick = (ev) => {
     const id = ev.features[0].properties.id;
     const e = state.events.find((x) => x.id === id);
     if (e) showEventPopup(e, ev.lngLat);
-  });
+  };
+  map.on("click", "events-layer", onEventClick);
+  map.on("click", "events-icons", onEventClick);
   map.on("click", "facilities-layer", (ev) => {
     const p = ev.features[0].properties;
     popup.setLngLat(ev.lngLat).setHTML(
@@ -335,7 +380,7 @@ function addLayers() {
       `<div class="popup-row">${esc(p.condition || "")}</div>`
     ).addTo(map);
   });
-  for (const layer of ["events-layer", "facilities-layer", "cameras-layer", "conditions-layer"]) {
+  for (const layer of ["events-layer", "events-icons", "facilities-layer", "cameras-layer", "conditions-layer"]) {
     map.on("mouseenter", layer, () => (map.getCanvas().style.cursor = "pointer"));
     map.on("mouseleave", layer, () => (map.getCanvas().style.cursor = ""));
   }
@@ -374,10 +419,11 @@ function wireUI() {
   document.getElementById("importance").addEventListener("change", (e) => { state.importance = e.target.value; apply(); });
   document.getElementById("autorefresh").addEventListener("change", (e) => setAutoRefresh(e.target.checked));
 
-  const layerToggle = (id, layer) => document.getElementById(id).addEventListener("change", (e) => {
-    map.setLayoutProperty(layer, "visibility", e.target.checked ? "visible" : "none");
+  const layerToggle = (id, layers) => document.getElementById(id).addEventListener("change", (e) => {
+    const vis = e.target.checked ? "visible" : "none";
+    (Array.isArray(layers) ? layers : [layers]).forEach((l) => map.setLayoutProperty(l, "visibility", vis));
   });
-  layerToggle("layer-events", "events-layer");
+  layerToggle("layer-events", ["events-layer", "events-icons"]);
   layerToggle("layer-facilities", "facilities-layer");
   layerToggle("layer-cameras", "cameras-layer");
   layerToggle("layer-conditions", "conditions-layer");
@@ -412,7 +458,7 @@ async function init(isRefresh) {
       popup = new maplibregl.Popup({ closeButton: true, maxWidth: "300px" });
       map.addControl(new maplibregl.NavigationControl(), "top-right");
       await new Promise((res) => map.on("load", res));
-      addLayers();
+      await addLayers();
       wireUI();
     } else {
       map.getSource("facilities").setData(toFC(state.facilities, "facility"));
