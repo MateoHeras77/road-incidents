@@ -3,16 +3,19 @@ html, body { margin: 0; height: 100%; font-family: -apple-system, Segoe UI, Robo
 body { display: flex; flex-direction: column; height: 100vh; color: #1c2330; }
 
 #topbar {
-  display: flex; align-items: center; gap: 16px;
-  padding: 8px 16px; background: #0f1b2d; color: #fff; flex: 0 0 auto;
+  display: flex; align-items: center; gap: 14px;
+  padding: 8px 16px; background: #1c3f94; color: #fff; flex: 0 0 auto;
+  border-bottom: 3px solid #ee3124;
 }
+#topbar #logo { height: 26px; width: auto; display: block; }
 #topbar .brand strong { font-size: 16px; }
-#topbar .brand .sub { font-size: 12px; opacity: .7; margin-left: 8px; }
+#topbar .brand .sub { font-size: 12px; opacity: .75; margin-left: 8px; }
 .counters { display: flex; gap: 14px; margin-left: auto; font-size: 13px; }
 .counters .num { font-weight: 700; }
-.counters .closure { color: #ff6b6b; }
-.counters .accident { color: #ffa94d; }
-#refresh { background: #1f3a5f; color: #fff; border: 0; padding: 6px 12px; border-radius: 6px; cursor: pointer; }
+.counters .closure { color: #ff8a80; }
+.counters .accident { color: #ffc078; }
+#refresh { background: rgba(255,255,255,.16); color: #fff; border: 0; padding: 6px 12px; border-radius: 6px; cursor: pointer; }
+#refresh:hover { background: rgba(255,255,255,.28); }
 
 #app { flex: 1 1 auto; display: flex; min-height: 0; }
 #sidebar {
@@ -59,7 +62,7 @@ body { display: flex; flex-direction: column; height: 100vh; color: #1c2330; }
 
 #status {
   position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);
-  background: #0f1b2d; color: #fff; padding: 6px 14px; border-radius: 20px; font-size: 12px;
+  background: #1c3f94; color: #fff; padding: 6px 14px; border-radius: 20px; font-size: 12px;
   opacity: 0; transition: opacity .3s; pointer-events: none;
 }
 #status.show { opacity: .92; }

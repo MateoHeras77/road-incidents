@@ -3,7 +3,7 @@
 const CFG = window.ROAD_INCIDENTS_CONFIG;
 
 const CLASS_COLORS = {
-  closure: "#e03131",
+  closure: "#ee3124",
   accident: "#f08c00",
   construction: "#e8a90c",
   restriction: "#7048e8",
@@ -275,7 +275,7 @@ function badgeSvg(color, glyph) {
   );
 }
 const ICON_SVGS = {
-  closure: badgeSvg("#e03131", '<rect x="13" y="19.5" width="18" height="5" rx="2.5" fill="#fff"/>'),
+  closure: badgeSvg("#ee3124", '<rect x="13" y="19.5" width="18" height="5" rx="2.5" fill="#fff"/>'),
   accident: badgeSvg("#f08c00", '<rect x="20" y="12.5" width="4" height="12.5" rx="2" fill="#fff"/><circle cx="22" cy="30.5" r="2.6" fill="#fff"/>'),
   construction: badgeSvg("#e8a90c", '<path d="M22 12 L30.5 30 H13.5 Z" fill="#fff"/><rect x="12.5" y="28.8" width="19" height="3.6" rx="1.6" fill="#fff"/>'),
   camera: badgeSvg("#3b5bdb", '<rect x="12" y="17.5" width="14.5" height="11" rx="2" fill="#fff"/><circle cx="19.2" cy="23" r="3" fill="#3b5bdb"/><path d="M27 20 l5.5 -3 v12 l-5.5 -3 z" fill="#fff"/>'),
@@ -393,11 +393,11 @@ function buildChips(containerId, items, set, labelFn, colorFn) {
   for (const item of items) {
     const chip = document.createElement("span");
     chip.className = "chip active";
-    chip.style.background = colorFn ? colorFn(item) : "#495057";
+    chip.style.background = colorFn ? colorFn(item) : "#1c3f94";
     chip.innerHTML = (colorFn ? `<span class="dot" style="background:#fff"></span>` : "") + labelFn(item);
     chip.onclick = () => {
       if (set.has(item)) { set.delete(item); chip.classList.remove("active"); chip.style.background = "#fff"; chip.style.color = "#1c2330"; }
-      else { set.add(item); chip.classList.add("active"); chip.style.background = colorFn ? colorFn(item) : "#495057"; chip.style.color = "#fff"; }
+      else { set.add(item); chip.classList.add("active"); chip.style.background = colorFn ? colorFn(item) : "#1c3f94"; chip.style.color = "#fff"; }
       apply();
     };
     c.appendChild(chip);
@@ -426,7 +426,6 @@ function wireUI() {
   layerToggle("layer-events", ["events-layer", "events-icons"]);
   layerToggle("layer-facilities", "facilities-layer");
   layerToggle("layer-cameras", "cameras-layer");
-  layerToggle("layer-conditions", "conditions-layer");
 
   document.getElementById("refresh").onclick = () => init(true);
 }
