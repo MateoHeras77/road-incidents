@@ -7,7 +7,10 @@ body { display: flex; flex-direction: column; height: 100vh; color: #1c2330; }
   padding: 8px 16px; background: #1c3f94; color: #fff; flex: 0 0 auto;
   border-bottom: 3px solid #ee3124;
 }
-#topbar #logo { height: 26px; width: auto; display: block; }
+#topbar #logo {
+  height: 22px; width: auto; display: block; box-sizing: content-box;
+  background: #fff; padding: 6px 9px; border-radius: 7px;
+}
 #topbar .brand strong { font-size: 16px; }
 #topbar .brand .sub { font-size: 12px; opacity: .75; margin-left: 8px; }
 .counters { display: flex; gap: 14px; margin-left: auto; font-size: 13px; }
