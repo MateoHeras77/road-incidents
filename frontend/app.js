@@ -252,17 +252,21 @@ function showEventPopup(e, lngLat) {
 }
 
 // --- Map setup -----------------------------------------------------------
+// Free light-gray basemap (no API key). CARTO light_all now watermarks without a key.
 const BASE_STYLE = {
   version: 8,
   sources: {
-    carto: {
+    basemap: {
       type: "raster",
-      tiles: ["a", "b", "c"].map((s) => `https://${s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png`),
+      tiles: [
+        "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}",
+      ],
       tileSize: 256,
-      attribution: "© OpenStreetMap contributors © CARTO",
+      attribution: "Tiles © Esri — Esri, TomTom, FAO, NOAA, USGS",
+      maxzoom: 16,
     },
   },
-  layers: [{ id: "carto", type: "raster", source: "carto" }],
+  layers: [{ id: "basemap", type: "raster", source: "basemap" }],
 };
 
 // --- Category icons -------------------------------------------------------
