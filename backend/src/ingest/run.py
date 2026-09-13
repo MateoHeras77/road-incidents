@@ -157,11 +157,17 @@ def main() -> None:
                 json.dump(payloads, fh, ensure_ascii=False)
 
         if sink:
-            sink.replace_events(source, collected["events"])
-            if collected["cameras"]:
-                sink.replace_cameras(source, collected["cameras"])
-            if collected["conditions"]:
-                sink.replace_conditions(source, collected["conditions"])
+            try:
+                sink.replace_events(source, collected["events"])
+                if collected["cameras"]:
+                    sink.replace_cameras(source, collected["cameras"])
+                if collected["conditions"]:
+                    sink.replace_conditions(source, collected["conditions"])
+            except Exception as exc:
+                # Retries are exhausted inside the sink; keep going so the
+                # other provinces still get refreshed this run.
+                print(f"{source}: PUSH FAILED, skipping remaining writes: {exc}")
+                failures.append(source)
 
     print(f"TOTAL events={totals['events']} cameras={totals['cameras']} conditions={totals['conditions']}")
     if failures:
